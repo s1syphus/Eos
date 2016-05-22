@@ -11,7 +11,6 @@ The sample data used is the flower data from somewhere (source)
 * Driver to run everything
 * Training module
 * Image preprocessing
-    * Live
-    * Ahead of time (more drive space needed)
+    * Make more dynamic. Right now is kind of staticish
 * Make a more complete readme
 * Add in support for other image types (right now only jpeg)

@@ -11,14 +11,26 @@ import numpy as np
 import tensorflow as tf
 import os
 import sys
+import random
 
 from datetime import datetime
-from glob import glob
 
 import threading
 
 # Flags
 FLAGS = tf.app.flags.FLAGS
+
+tf.app.flags.DEFINE_string('train_directory', '../data/Flowers',
+                           'Training data directory')
+
+tf.app.flags.DEFINE_string('output_directory', '../data/sharded_data/Flowers/',
+                           'Output data directory')
+
+tf.app.flags.DEFINE_integer('train_shards', 24,
+                            'Number of shards in training TFRecord files.')
+
+tf.app.flags.DEFINE_integer('num_threads', 4,
+                            'Number of threads available.')
 
 
 # These help transform features to tensorflow features
@@ -57,7 +69,7 @@ def _convert_to_example(filename, image_buffer, label, height, width):
         'image/width': _int64_feature(width),
         'image/colorspace': _bytes_feature(colorspace),
         'image/channels': _int64_feature(channels),
-        'image/class/label': _int64_feature(label),
+        'image/class/label': _bytes_feature(label),
         'image/format': _bytes_feature(image_format),
         'image/filename': _bytes_feature(os.path.basename(filename)),
         'image/encoded': _bytes_feature(image_buffer)
@@ -213,16 +225,44 @@ def _find_image_files(data_dir):
     """
     print('Determining list of input files and labels from %s.' % data_dir)
 
-    labels = []
+    folders = os.listdir(data_dir)
     filenames = []
+    labels = []
+    # Leave label index 0 empty as a background class.
+    label_index = 1
 
-    paths = glob('data_dir' + '*/')
+    for folder in folders:
+        matching_files = tf.gfile.Glob(data_dir + '/' + str(folder) + '/*')
+        labels.extend([folder] * len(matching_files))
+        filenames.extend(matching_files)
+        label_index += 1
 
-    print(paths)
+    # Shuffle the ordering of all image files in order to guarantee
+    # random ordering of the images with respect to label in the
+    # saved TFRecord files. Make the randomization repeatable.
+    shuffled_index = range(len(filenames))
+    random.seed(12345)
+    random.shuffle(shuffled_index)
+
+    filenames = [filenames[i] for i in shuffled_index]
+    labels = [labels[i] for i in shuffled_index]
+
+    print('Found %d JPEG files across %d labels inside %s.' %
+          (len(filenames), len(folders), data_dir))
+
+    return filenames, labels
+
+
+def _process_dataset(name, directory, num_shards):
+    """
+        Turns a directory into shards of TF records
+    """
+    filenames, labels = _find_image_files(directory)
+    _process_image_files(name, filenames, labels, num_shards)
 
 
 def main(unused_argv):
-    _find_image_files('../data')
+    _process_dataset('train', FLAGS.train_directory, FLAGS.train_shards)
 
 
 if __name__ == '__main__':
