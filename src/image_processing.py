@@ -300,7 +300,7 @@ def batch_inputs(dataset, batch_size, train, num_preprocess_threads=None, num_re
         if num_readers < 1:
             raise ValueError('Please make num_readers at least 1')
 
-            # Approximate number of examples per shard.
+        # Approximate number of examples per shard.
         examples_per_shard = 1024
         # Size the random shuffle queue to balance between good global
         # mixing (more examples) and memory use (fewer examples).

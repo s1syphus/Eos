@@ -20,13 +20,13 @@ import threading
 # Flags
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string('train_directory', '../data/Flowers',
+tf.app.flags.DEFINE_string('train_directory', '../data/raw_images/flower_photos',
                            'Training data directory')
 
-tf.app.flags.DEFINE_string('output_directory', '../data/sharded_data/Flowers/',
+tf.app.flags.DEFINE_string('output_directory', '../data/sharded_data/flowers/',
                            'Output data directory')
 
-tf.app.flags.DEFINE_integer('train_shards', 24,
+tf.app.flags.DEFINE_integer('train_shards', 4,
                             'Number of shards in training TFRecord files.')
 
 tf.app.flags.DEFINE_integer('num_threads', 4,
@@ -179,7 +179,7 @@ def _process_image_files_batch(coder, thread_index, ranges, name, filenames, lab
         print('%s [thread %d]: Wrote %d images to %s' % (datetime.now(), thread_index, shard_counter, output_file))
         sys.stdout.flush()
     print('%s [thread %d]: Wrote %d images to %d shards.' %
-          (datetime.now(), thread_index, counter, num_files_in_thread))
+          (datetime.now(), thread_index, counter, num_shards))
     sys.stdout.flush()
 
 
