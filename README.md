@@ -1,4 +1,5 @@
 # Eos
+Very early stage of devlopment. Right now nothing works
 This project will allow raw image data to be processed into
 tensorflow shards and then be used to train tensorflow models
 
